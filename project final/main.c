@@ -8,8 +8,9 @@ if (file == NULL) {
 
 int ch;
 while ((ch = fgetc(file)) != EOF) {
-    putchar(ch);  // แสดงตัวอักษรที่อ่านได้
+    putchar(ch);
 }
 
 fclose(file);
 }
+
