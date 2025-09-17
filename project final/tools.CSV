@@ -1,0 +1,16 @@
+OrderID,Toolname,Quanlity,Price
+T001,Hammer,10,150
+T002,Drill,5,1200
+T003,Screwdriver Set,10,250
+T004,Saw,20,200
+T005,Tape,24,100
+T006,Wrench,15,250
+T007,Chisel,16,90
+T008,Ladder,7,1000
+T009,Axe,19,350
+T010,Ruler,50,50
+T011,Helmet,22,450
+T012,Knife,25,80
+T013,Sand Paper,60,10
+T014,Wire Cutter,10,600
+T015,Measuring Tape,20,25
