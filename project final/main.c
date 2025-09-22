@@ -1,16 +1,34 @@
 #include <stdio.h>
+
+void ReadFile(){
+    FILE *file =fopen("tools.csv","r");
+    if (file == NULL)
+    {
+        printf("File: %p\n", file);
+        printf("ไม่สามารถเปิดไฟล์ได้\n");
+    }
+    else
+    {
+        char line[100];
+    while (fgets(line, sizeof(line), file)) {
+        printf("%s", line);
+    }
+
+    fclose(file);
+    }
+
+}
+
+
+// void WriteFile(){
+
+// }
+
+// void AddOrder(){
+
+// }
+
 int main(){
-FILE *file = fopen("tools.CVS", "r");
-if (file == NULL) {
-    printf("ไม่สามารถเปิดไฟล์ได้\n");
-    return 1;
+    ReadFile();
+    return 0;
 }
-
-int ch;
-while ((ch = fgetc(file)) != EOF) {
-    putchar(ch);
-}
-
-fclose(file);
-}
-
