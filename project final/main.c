@@ -57,15 +57,15 @@ void AddOrder(){
 }
 
 void SearchOrder(){
-    // TODO: implement
+
 }
 
 void UpdateOrder(){
-    // TODO: implement
+
 }
 
 void DeleteOrder(){
-    // TODO: implement
+
 }
 
 // MENU
@@ -78,7 +78,7 @@ int Menu(){
     printf("4) Update order\n");
     printf("5) Delete an order\n");
     printf("6) Exit program\n");
-    printf("Select an option (1-6): ");
+    printf("Select an option (1-6): \n");
     scanf("%d",&menu);
     return menu;
 }
