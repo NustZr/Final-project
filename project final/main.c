@@ -34,7 +34,7 @@ void AddOrder(){
     char orderID[5];
     char Tools[100];
     int quantity;
-    float price;
+    int price;
 
     printf("Enter Order ID: ");
     scanf("%s", orderID);
@@ -48,9 +48,9 @@ void AddOrder(){
     scanf("%d", &quantity);
 
     printf("Enter Price per Unit: ");
-    scanf("%f", &price);
+    scanf("%d", &price);
 
-    fprintf(file, "%s,%s,%d,%.2f\n", orderID, Tools, quantity, price);
+    fprintf(file, "%s,%s,%d,%d\n", orderID, Tools, quantity, price);
 
     fclose(file);
     printf("Order added\n");
@@ -65,8 +65,52 @@ void UpdateOrder(){
 }
 
 void DeleteOrder(){
+    FILE *file = fopen("tools.csv", "r");
+    if (file == NULL){
+        printf("Cannot open file\n");
+        return;
+    }
 
+    FILE *temp = fopen("temp.csv", "w");
+    if (temp == NULL){
+        printf("Cannot create temp file\n");
+        fclose(file);
+        return;
+    }
+
+    char orderID[5];
+    printf("Enter Order ID : ");
+    scanf("%s", orderID);
+
+    char line[256];
+    int deleted = 0;
+
+    while (fgets(line, sizeof(line), file)) {
+        char buf[256];
+        strcpy(buf, line);
+
+
+        char *id = strtok(buf, ",");
+        if (id != NULL && strcmp(id, orderID) == 0) {
+            deleted = 1;
+            continue;
+        }
+        fputs(line, temp);
+    }
+
+    fclose(file);
+    fclose(temp);
+
+    remove("tools.csv");
+    rename("temp.csv", "tools.csv");
+
+    if (deleted) {
+        printf("Order %s deleted successfully.\n", orderID);
+    } else {
+        printf("Order %s not found.\n", orderID);
+    }
 }
+
 
 // MENU
 int Menu(){
