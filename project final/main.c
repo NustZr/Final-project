@@ -680,3 +680,6 @@ int main() {
     } while (menu != 7);
     return 0;
 }
+
+// gcc main.c -o project.exe
+// project.exe
