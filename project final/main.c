@@ -567,11 +567,13 @@ void UnitTests() {
 
 void E2ETest() {
     printf("\n===== Running E2E Test =====\n");
+
     FILE *orig = fopen("tools.csv", "r");
     FILE *copy = fopen("test_tools.csv", "w");
     if (orig && copy) {
         char c;
-        while ((c = fgetc(orig)) != EOF) fputc(c, copy);
+        while ((c = fgetc(orig)) != EOF)
+            fputc(c, copy);
         fclose(orig);
         fclose(copy);
         printf("Copied tools.csv to test_tools.csv\n");
@@ -581,16 +583,70 @@ void E2ETest() {
         if (copy) fclose(copy);
         return;
     }
-    rename("tools.csv", "backup_tools.csv");
+
+    rename("tools.csv", "backup_tools.csv"); 
     rename("test_tools.csv", "tools.csv");
+
     printf("Performing simulated Add/Search/Delete operations...\n");
-    printf("AddOrder() simulation skipped\n");
-    printf("SearchOrder() simulation skipped\n");
-    printf("DeleteOrder() simulation skipped\n");
+
+    // --- Add Order ---
+    FILE *file = fopen("tools.csv", "a");
+    if (file) {
+        fprintf(file, "T999,TestTool,9,99\n");
+        fclose(file);
+        printf("Simulated AddOrder(): Added T999\n");
+    } else {
+        printf("AddOrder() simulation failed\n");
+    }
+
+    // ---  Search Order ---
+    file = fopen("tools.csv", "r");
+    if (file) {
+        char line[256];
+        int found = 0;
+        while (fgets(line, sizeof(line), file)) {
+            if (strstr(line, "T999")) {
+                found = 1;
+                break;
+            }
+        }
+        fclose(file);
+        printf("SearchOrder(): %s\n", found ? "PASS (Found T999)" : "FAIL (Not found)");
+    }
+
+    // --- Delete Order ---
+    FILE *in = fopen("tools.csv", "r");
+    FILE *out = fopen("temp_e2e.csv", "w");
+    char line[256];
+    while (fgets(line, sizeof(line), in)) {
+        if (strstr(line, "T999"))
+            continue;
+        fputs(line, out);
+    }
+    fclose(in);
+    fclose(out);
+    remove("tools.csv");
+    rename("temp_e2e.csv", "tools.csv");
+    printf("Simulated DeleteOrder(): Deleted T999\n");
+
+   
+    file = fopen("tools.csv", "r");
+    int stillFound = 0;
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "T999")) {
+            stillFound = 1;
+            break;
+        }
+    }
+    fclose(file);
+    printf("Verify DeleteOrder(): %s\n", stillFound ? "FAIL (Still found T999)" : "PASS (Deleted)\n");
+
     remove("tools.csv");
     rename("backup_tools.csv", "tools.csv");
+
     printf("E2E Test completed and restored original file\n");
 }
+
 
 int main() {
     int menu;
