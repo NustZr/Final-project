@@ -3,10 +3,23 @@
 #include <string.h>
 #include <ctype.h>
 
+const char *tools_file = "tools.csv";
+
 //=========================================//
 
+int ci_strcmp(const char *a, const char *b) {
+    if (!a || !b) return (a == b) ? 0 : (a ? 1 : -1);
+    while (*a && *b) {
+        int ca = tolower((unsigned char)*a);
+        int cb = tolower((unsigned char)*b);
+        if (ca != cb) return ca - cb;
+        a++; b++;
+    }
+    return (unsigned char)*a - (unsigned char)*b;
+}
+
 FILE *ReadFile() {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return NULL;
@@ -17,7 +30,7 @@ FILE *ReadFile() {
 //=========================================//
 
 void DisplayFile() {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     if (file == NULL) {
         return;
     }
@@ -51,7 +64,7 @@ int similarity(const char *a, const char *b) {
 //=========================================//
 
 void OrderIDPlus1(char *newID) {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     int maxID = 0;
     char line[256];
 
@@ -76,7 +89,7 @@ void OrderIDPlus1(char *newID) {
 //=========================================//
 
 void AddOrder() {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     FILE *temp = fopen("temp.csv", "w");
     if (temp == NULL) {
         if (file) fclose(file);
@@ -211,7 +224,7 @@ void AddOrder() {
             strcpy(Tools, similarTool);
             strcpy(existingID, similarID);
             found = 1;
-            file = fopen("tools.csv", "r");
+            file = fopen(tools_file, "r");
             if (file != NULL) {
                 while (fgets(line, sizeof(line), file)) {
                     char id[10], tool[100];
@@ -264,7 +277,7 @@ void AddOrder() {
 
     fclose(temp);
     FILE *finalIn = fopen("temp.csv", "r");
-    FILE *finalOut = fopen("tools.csv", "w");
+    FILE *finalOut = fopen(tools_file, "w");
     while (fgets(line, sizeof(line), finalIn)) {
         char id[10], tool[100];
         int qty, pr;
@@ -300,7 +313,7 @@ void AddOrder() {
 //=========================================//
 
 void SearchOrder() {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return;
@@ -332,7 +345,7 @@ void SearchOrder() {
         int qty, price;
         sscanf(line, "%[^,],%[^,],%d,%d", id, tool, &qty, &price);
 
-        if (strcasecmp(id, search) == 0 || strcasecmp(tool, search) == 0) {
+        if (ci_strcmp(id, search) == 0 || ci_strcmp(tool, search) == 0) {
             printf("Order ID: %s\n", id);
             printf("Tool: %s\n", tool);
             printf("Quantity: %d\n", qty);
@@ -353,7 +366,7 @@ void SearchOrder() {
         printf("Did you mean '%s'? (Y/N): ", closestTool);
         scanf(" %c", &confirm);
         if (confirm == 'Y' || confirm == 'y') {
-            file = fopen("tools.csv", "r");
+            file = fopen(tools_file, "r");
             if (file != NULL) {
                 while (fgets(line, sizeof(line), file)) {
                     char id[10], tool[100];
@@ -382,7 +395,7 @@ void SearchOrder() {
 //=========================================//
 
 void DeleteOrder() {
-    FILE *file = fopen("tools.csv", "r");
+    FILE *file = fopen(tools_file, "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return;
@@ -463,14 +476,16 @@ void DeleteOrder() {
     fclose(file);
     fclose(temp);
 
-    remove("tools.csv");
-    rename("temp.csv", "tools.csv");
+    remove(tools_file);
+    rename("temp.csv", tools_file);
 
     if (deleted)
         printf("Order %s (%s) deleted successfully.\n", orderID, toolName);
     else
         printf("Order %s not found.\n", orderID);
 }
+
+
 
 //=========================================//
 
@@ -489,7 +504,7 @@ int Menu() {
 
 //=========================================//
 
-int main() {
+int run_app(void) {
     int menu;
     do {
         menu = Menu();
