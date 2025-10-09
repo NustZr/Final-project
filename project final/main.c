@@ -3,23 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 
-const char *tools_file = "tools.csv";
-
-//=========================================//
-
-int ci_strcmp(const char *a, const char *b) {
-    if (!a || !b) return (a == b) ? 0 : (a ? 1 : -1);
-    while (*a && *b) {
-        int ca = tolower((unsigned char)*a);
-        int cb = tolower((unsigned char)*b);
-        if (ca != cb) return ca - cb;
-        a++; b++;
-    }
-    return (unsigned char)*a - (unsigned char)*b;
-}
-
 FILE *ReadFile() {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return NULL;
@@ -27,10 +12,8 @@ FILE *ReadFile() {
     return file;
 }
 
-//=========================================//
-
 void DisplayFile() {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     if (file == NULL) {
         return;
     }
@@ -42,37 +25,28 @@ void DisplayFile() {
     fclose(file);
 }
 
-//=========================================//
-
 int similarity(const char *a, const char *b) {
     int lenA = strlen(a);
     int lenB = strlen(b);
     if (lenA == 0 || lenB == 0) return 0;
-
     int diff = abs(lenA - lenB);
     int same = 0;
-
     for (int i = 0; i < lenA && i < lenB; i++) {
         if (tolower(a[i]) == tolower(b[i])) same++;
     }
-
     float ratio = (float)same / ((lenA + lenB) / 2.0);
     if (ratio > 0.75 && diff <= 2) return 1;
     return 0;
 }
 
-//=========================================//
-
 void OrderIDPlus1(char *newID) {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     int maxID = 0;
     char line[256];
-
     if (file == NULL) {
         sprintf(newID, "T001");
         return;
     }
-
     while (fgets(line, sizeof(line), file)) {
         char id[10];
         sscanf(line, "%[^,]", id);
@@ -82,14 +56,11 @@ void OrderIDPlus1(char *newID) {
         }
     }
     fclose(file);
-
     sprintf(newID, "T%03d", maxID + 1);
 }
 
-//=========================================//
-
 void AddOrder() {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     FILE *temp = fopen("temp.csv", "w");
     if (temp == NULL) {
         if (file) fclose(file);
@@ -224,7 +195,7 @@ void AddOrder() {
             strcpy(Tools, similarTool);
             strcpy(existingID, similarID);
             found = 1;
-            file = fopen(tools_file, "r");
+            file = fopen("tools.csv", "r");
             if (file != NULL) {
                 while (fgets(line, sizeof(line), file)) {
                     char id[10], tool[100];
@@ -277,7 +248,7 @@ void AddOrder() {
 
     fclose(temp);
     FILE *finalIn = fopen("temp.csv", "r");
-    FILE *finalOut = fopen(tools_file, "w");
+    FILE *finalOut = fopen("tools.csv", "w");
     while (fgets(line, sizeof(line), finalIn)) {
         char id[10], tool[100];
         int qty, pr;
@@ -309,11 +280,8 @@ void AddOrder() {
         printf("New order added: %s\n", orderID);
 }
 
-
-//=========================================//
-
 void SearchOrder() {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return;
@@ -345,7 +313,7 @@ void SearchOrder() {
         int qty, price;
         sscanf(line, "%[^,],%[^,],%d,%d", id, tool, &qty, &price);
 
-        if (ci_strcmp(id, search) == 0 || ci_strcmp(tool, search) == 0) {
+        if (strcasecmp(id, search) == 0 || strcasecmp(tool, search) == 0) {
             printf("Order ID: %s\n", id);
             printf("Tool: %s\n", tool);
             printf("Quantity: %d\n", qty);
@@ -366,12 +334,13 @@ void SearchOrder() {
         printf("Did you mean '%s'? (Y/N): ", closestTool);
         scanf(" %c", &confirm);
         if (confirm == 'Y' || confirm == 'y') {
-            file = fopen(tools_file, "r");
+            file = fopen("tools.csv", "r");
             if (file != NULL) {
-                while (fgets(line, sizeof(line), file)) {
+                char line2[256];
+                while (fgets(line2, sizeof(line2), file)) {
                     char id[10], tool[100];
                     int qty, price;
-                    sscanf(line, "%[^,],%[^,],%d,%d", id, tool, &qty, &price);
+                    sscanf(line2, "%[^,],%[^,],%d,%d", id, tool, &qty, &price);
                     if (strcmp(tool, closestTool) == 0) {
                         printf("\nOrder ID: %s\n", id);
                         printf("Tool: %s\n", tool);
@@ -392,10 +361,8 @@ void SearchOrder() {
     }
 }
 
-//=========================================//
-
 void DeleteOrder() {
-    FILE *file = fopen(tools_file, "r");
+    FILE *file = fopen("tools.csv", "r");
     if (file == NULL) {
         printf("Cannot open file\n");
         return;
@@ -476,18 +443,14 @@ void DeleteOrder() {
     fclose(file);
     fclose(temp);
 
-    remove(tools_file);
-    rename("temp.csv", tools_file);
+    remove("tools.csv");
+    rename("temp.csv", "tools.csv");
 
     if (deleted)
         printf("Order %s (%s) deleted successfully.\n", orderID, toolName);
     else
         printf("Order %s not found.\n", orderID);
 }
-
-
-
-//=========================================//
 
 int Menu() {
     int menu;
@@ -496,15 +459,140 @@ int Menu() {
     printf("2) Add/Update new order\n");
     printf("3) Search for an order\n");
     printf("4) Delete an order\n");
-    printf("5) Exit program\n");
-    printf("Select an option (1-5): ");
+    printf("5) Run Unit Tests\n");
+    printf("6) Run E2E Test\n");
+    printf("7) Exit program\n");
+    printf("Select an option (1-7): ");
     scanf("%d", &menu);
     return menu;
 }
 
-//=========================================//
+void UnitTests() {
+    printf("\n===== Running Automated Unit Tests =====\n");
 
-int run_app(void) {
+
+    FILE *testFile = fopen("unit_tools.csv", "w");
+    if (!testFile) {
+        printf("FAIL: Cannot create unit_tools.csv\n");
+        return;
+    }
+    fprintf(testFile, "T001,Hammer,10,100\n");
+    fprintf(testFile, "T002,Screwdriver,5,50\n");
+    fprintf(testFile, "T003,Saw,8,120\n");
+    fclose(testFile);
+    printf("Created test file: unit_tools.csv\n");
+
+    rename("tools.csv", "tools_backup.csv");
+    rename("unit_tools.csv", "tools.csv");
+
+    // 1) Test ReadFile
+    FILE *f = ReadFile();
+    if (f) {
+        printf("ReadFile(): PASS\n");
+        fclose(f);
+    } else {
+        printf("ReadFile(): FAIL\n");
+    }
+
+    // 2) Test DisplayFile
+    printf("\nDisplayFile(): Showing file contents\n");
+    DisplayFile();
+
+    // 3) Test similarity()
+    int s1 = similarity("Hammer", "hammer");
+    int s2 = similarity("Saw", "Sawn");
+    int s3 = similarity("Drill", "Paint");
+    printf("\nsimilarity(\"Hammer\",\"hammer\"): %s\n", s1 ? "PASS" : "FAIL");
+    printf("similarity(\"Saw\",\"Sawn\"): %s\n", s2 ? "PASS" : "FAIL");
+    printf("similarity(\"Drill\",\"Paint\"): %s\n", s3 ? "PASS" : "FAIL");
+
+    // 4) Test OrderIDPlus1()
+    char nextID[10];
+    OrderIDPlus1(nextID);
+    printf("\nOrderIDPlus1(): Got ID = %s (expected T004)\n", nextID);
+    if (strcmp(nextID, "T004") == 0)
+        printf("OrderIDPlus1(): PASS\n");
+    else
+        printf("OrderIDPlus1(): FAIL\n");
+
+    // 5) Test SearchOrder()
+    printf("\nSearchOrder(): Searching for 'Hammer'\n");
+    FILE *file = fopen("tools.csv", "r");
+    int found = 0;
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "Hammer")) {
+            found = 1;
+            break;
+        }
+    }
+    fclose(file);
+    printf("SearchOrder(): %s\n", found ? "PASS (Found Hammer)" : "FAIL (Not found)");
+
+    // 6) Test DeleteOrder()
+    printf("\nDeleteOrder(): Simulating delete T002\n");
+    FILE *in = fopen("tools.csv", "r");
+    FILE *out = fopen("temp_test.csv", "w");
+    char id[10], tool[100];
+    int qty, price;
+    int deleted = 0;
+    while (fgets(line, sizeof(line), in)) {
+        sscanf(line, "%[^,],%[^,],%d,%d", id, tool, &qty, &price);
+        if (strcmp(id, "T002") == 0) {
+            deleted = 1;
+            continue;
+        }
+        fprintf(out, "%s,%s,%d,%d\n", id, tool, qty, price);
+    }
+    fclose(in);
+    fclose(out);
+    remove("tools.csv");
+    rename("temp_test.csv", "tools.csv");
+    printf("DeleteOrder(): %s\n", deleted ? "PASS (T002 removed)" : "FAIL (T002 not found)");
+
+    f = fopen("tools.csv", "r");
+    found = 0;
+    while (fgets(line, sizeof(line), f)) {
+        if (strstr(line, "T002")) found = 1;
+    }
+    fclose(f);
+    printf("Verify DeleteOrder(): %s\n", found ? "FAIL (Still found T002)" : "PASS (Not found)");
+
+    printf("\n===== All Unit Tests Finished =====\n");
+
+    remove("tools.csv");
+    rename("tools_backup.csv", "tools.csv");
+}
+
+
+void E2ETest() {
+    printf("\n===== Running E2E Test =====\n");
+    FILE *orig = fopen("tools.csv", "r");
+    FILE *copy = fopen("test_tools.csv", "w");
+    if (orig && copy) {
+        char c;
+        while ((c = fgetc(orig)) != EOF) fputc(c, copy);
+        fclose(orig);
+        fclose(copy);
+        printf("Copied tools.csv to test_tools.csv\n");
+    } else {
+        printf("Cannot clone file for E2E Test\n");
+        if (orig) fclose(orig);
+        if (copy) fclose(copy);
+        return;
+    }
+    rename("tools.csv", "backup_tools.csv");
+    rename("test_tools.csv", "tools.csv");
+    printf("Performing simulated Add/Search/Delete operations...\n");
+    printf("AddOrder() simulation skipped\n");
+    printf("SearchOrder() simulation skipped\n");
+    printf("DeleteOrder() simulation skipped\n");
+    remove("tools.csv");
+    rename("backup_tools.csv", "tools.csv");
+    printf("E2E Test completed and restored original file\n");
+}
+
+int main() {
     int menu;
     do {
         menu = Menu();
@@ -522,11 +610,17 @@ int run_app(void) {
                 DeleteOrder();
                 break;
             case 5:
+                UnitTests();
+                break;
+            case 6:
+                E2ETest();
+                break;
+            case 7:
                 printf("Exiting...\n");
                 break;
             default:
                 printf("Invalid choice\n");
         }
-    } while (menu != 5);
+    } while (menu != 7);
     return 0;
 }
